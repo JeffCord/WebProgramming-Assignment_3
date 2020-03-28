@@ -1,2 +1,2 @@
-https://dev.mysql.com/get/Downloads/Connector-Python/mysql-connector-python-8.0.19.tar.gz4. Run pip install -r requirements.txt
+https://dev.mysql.com/get/Downloads/Connector-Python/mysql-connector-python-8.0.19.tar.gz4
 Flask
