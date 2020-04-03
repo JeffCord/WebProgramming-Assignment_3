@@ -145,7 +145,7 @@ def update_pool(pool_name):
     except Exception as exp:
         print(exp)
 
-    # TODO do not allow change to pool_name field
+    # do not allow change to pool_name field
     if pool_name != msg['pool_name']:
         return 'Update to pool_name field not allowed\n', 400
 
