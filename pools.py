@@ -49,7 +49,6 @@ def create_table():
 
 
 def populate_data():
-
     db, username, password, hostname = get_db_creds()
 
     print("Inside populate_data")
@@ -61,8 +60,8 @@ def populate_data():
     cnx = ''
     try:
         cnx = mysql.connector.connect(user=username, password=password,
-                                       host=hostname,
-                                       database=db)
+                                      host=hostname,
+                                      database=db)
     except Exception as exp:
         print(exp)
 
@@ -73,7 +72,6 @@ def populate_data():
 
 
 def query_data():
-
     db, username, password, hostname = get_db_creds()
 
     print("Inside query_data")
@@ -107,12 +105,35 @@ def query_data():
 
 
 @app.route('/pools/<pool_name>', methods=['GET'])
-def get_pool():
-    return 'get pool method finished\n'
+def get_pool(pool_name):
+    db, username, password, hostname = get_db_creds()
+
+    cnx = ''
+    try:
+        cnx = mysql.connector.connect(user=username, password=password,
+                                      host=hostname,
+                                      database=db)
+    except Exception as exp:
+        print(exp)
+
+    check_cur = cnx.cursor()
+    check_cur.execute('SELECT * FROM pools_data.pools WHERE pool_name = \'' + pool_name + '\'')
+    my_result = check_cur.fetchall()
+
+    if len(my_result) == 0:
+        return 'Pool with name ' + pool_name + ' does not exist\n', 404
+
+    # store the row/record containing the target pool's fields
+    tgt_pool = my_result[0]
+
+    # return dictionary for json output
+    output = {"pool_name": tgt_pool[0], "status": tgt_pool[1],
+              "phone": tgt_pool[2], "pool_type": tgt_pool[3]}
+    return output, 200
 
 
 @app.route('/pools/<pool_name>', methods=['PUT'])
-def update_pool():
+def update_pool(pool_name):
     return 'update pool method finished\n'
 
 
@@ -149,7 +170,7 @@ def add_to_db():
     valid_pool_types = ['Neighborhood', 'University', 'Community']
 
     msg = request.json  # retrieves a json file from the local repository
-    db, username, password, hostname = get_db_creds() # retrieve env vars
+    db, username, password, hostname = get_db_creds()  # retrieve env vars
 
     # create a MySQLConnection object
     cnx = ''
@@ -170,21 +191,20 @@ def add_to_db():
     # check if pool already exists in table
     cur.execute("SELECT * FROM pools_data.pools WHERE pool_name = " + "\'" + msg['pool_name'] + "\'")
 
-    # returns a list of tuples
-    # each tuple represents a row in the table that was returned from the most recent sql execution
+    # returns a list of tuples representing rows in the table that was returned from the most recent sql execution
     my_result = cur.fetchall()
     if len(my_result) != 0:
         return 'Pool with name ' + msg['pool_name'] + ' already exists\n', 400
 
-    # check for valid phone number syntax: 'phone field not in valid format'
+    # check for valid phone number syntax
     if not valid_phone_syntax(msg['phone']):
         return 'phone field not in valid format\n', 400
 
-    # check for valid pool type: 'pool_type field has invalid value'
+    # check for valid pool type
     if msg['pool_type'] not in valid_pool_types:
         return 'pool_type field has invalid value\n', 400
 
-    # check for valid status: 'status field has invalid value'
+    # check for valid status
     if msg['status'] not in valid_statuses:
         return 'status field has invalid value\n', 400
 
