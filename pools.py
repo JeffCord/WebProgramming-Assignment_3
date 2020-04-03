@@ -108,12 +108,12 @@ def query_data():
 
 @app.route('/pools/<pool_name>', methods=['GET'])
 def get_pool():
-    return 'get pool method finished'
+    return 'get pool method finished\n'
 
 
 @app.route('/pools/<pool_name>', methods=['PUT'])
 def update_pool():
-    return 'update pool method finished'
+    return 'update pool method finished\n'
 
 
 @app.route('/pools/<pool_name>', methods=['DELETE'])
@@ -128,9 +128,16 @@ def delete_pool(pool_name):
     except Exception as exp:
         print(exp)
 
-    sql_query = 'DELETE FROM pools_data.pools WHERE pool_name = \'' + pool_name + '\''
+    check_cur = cnx.cursor()
+    check_cur.execute('SELECT * FROM pools_data.pools WHERE pool_name = \'' + pool_name + '\'')
+    my_result = check_cur.fetchall()
+
+    if len(my_result) == 0:
+        return 'Pool with name ' + pool_name + ' does not exist\n', 404
+
+    delete_query = 'DELETE FROM pools_data.pools WHERE pool_name = \'' + pool_name + '\''
     cur = cnx.cursor()
-    cur.execute(sql_query)
+    cur.execute(delete_query)
     cnx.commit()
 
     return '', 200
@@ -141,11 +148,10 @@ def add_to_db():
     valid_statuses = ['Closed', 'Open', 'In Renovation']
     valid_pool_types = ['Neighborhood', 'University', 'Community']
 
-    # print("Received request.")
-    msg = request.json  # a json file/python dict
-    # print('got json file for POST', msg)
-    db, username, password, hostname = get_db_creds()
+    msg = request.json  # retrieves a json file from the local repository
+    db, username, password, hostname = get_db_creds() # retrieve env vars
 
+    # create a MySQLConnection object
     cnx = ''
     try:
         cnx = mysql.connector.connect(user=username, password=password,
@@ -167,7 +173,6 @@ def add_to_db():
     # returns a list of tuples
     # each tuple represents a row in the table that was returned from the most recent sql execution
     my_result = cur.fetchall()
-
     if len(my_result) != 0:
         return 'Pool with name ' + msg['pool_name'] + ' already exists\n', 400
 
