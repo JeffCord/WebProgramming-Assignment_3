@@ -161,18 +161,23 @@ def add_to_db():
     # create a cursor object that interacts with the MySQL server using a MySQLConnection object
     cur = cnx.cursor()
 
-    # TODO check if pool already exists in table: 'Pool with name <pool_name> already exists'
-    cur.execute("SELECT COUNT(*) FROM pools_data.pools WHERE pool_name = " + "\'" + msg['pool_name'] + "\'")
+    # check if pool already exists in table
+    cur.execute("SELECT * FROM pools_data.pools WHERE pool_name = " + "\'" + msg['pool_name'] + "\'")
+
+    # returns a list of tuples
+    # each tuple represents a row in the table that was returned from the most recent sql execution
     my_result = cur.fetchall()
-    print(my_result)
+
+    if len(my_result) != 0:
+        return 'Pool with name ' + msg['pool_name'] + ' already exists\n', 400
 
     # check for valid phone number syntax: 'phone field not in valid format'
     if not valid_phone_syntax(msg['phone']):
-        return 'phone field not in valid format', 400
+        return 'phone field not in valid format\n', 400
 
     # check for valid pool type: 'pool_type field has invalid value'
     if msg['pool_type'] not in valid_pool_types:
-        return 'pool_type field has invalid value', 400
+        return 'pool_type field has invalid value\n', 400
 
     # check for valid status: 'status field has invalid value'
     if msg['status'] not in valid_statuses:
