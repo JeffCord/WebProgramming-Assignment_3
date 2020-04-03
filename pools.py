@@ -134,7 +134,53 @@ def get_pool(pool_name):
 
 @app.route('/pools/<pool_name>', methods=['PUT'])
 def update_pool(pool_name):
-    return 'update pool method finished\n'
+    msg = request.json
+    db, username, password, hostname = get_db_creds()
+
+    cnx = ''
+    try:
+        cnx = mysql.connector.connect(user=username, password=password,
+                                      host=hostname,
+                                      database=db)
+    except Exception as exp:
+        print(exp)
+
+    # TODO do not allow change to pool_name field
+    if pool_name != msg['pool_name']:
+        return 'Update to pool_name field not allowed\n', 400
+
+    check_cur = cnx.cursor()
+    check_cur.execute('SELECT * FROM pools_data.pools WHERE pool_name = \'' + pool_name + '\'')
+    my_result = check_cur.fetchall()
+
+    # check if pool does not exist in the table
+    if len(my_result) == 0:
+        return 'Pool with name ' + pool_name + ' does not exist\n', 404
+
+    valid_statuses = ['Closed', 'Open', 'In Renovation']
+    valid_pool_types = ['Neighborhood', 'University', 'Community']
+
+    new_status = msg['status']
+    new_phone = msg['phone']
+    new_pool_type = msg['pool_type']
+
+    # check for valid phone number syntax
+    if not valid_phone_syntax(new_phone):
+        return 'phone field not in valid format\n', 400
+
+    # check for valid pool type
+    if new_pool_type not in valid_pool_types:
+        return 'pool_type field has invalid value\n', 400
+
+    # check for valid status
+    if new_status not in valid_statuses:
+        return 'status field has invalid value\n', 400
+
+    get_cur = cnx.cursor()
+    get_cur.execute('UPDATE pools_data.pools SET status = \'' + new_status + '\', phone = \'' + new_phone + '\', '
+                    'pool_type = \'' + new_pool_type + '\' WHERE pool_name = \'' + pool_name + '\'')
+    cnx.commit()
+    return msg, 200
 
 
 @app.route('/pools/<pool_name>', methods=['DELETE'])
