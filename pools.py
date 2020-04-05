@@ -20,7 +20,6 @@ def get_db_creds():
 
 
 def create_table():
-    print('Create table called.')
     # Check if table exists or not. Create and populate it only if it does not exist.
     db, username, password, hostname = get_db_creds()
     table_ddl = 'CREATE TABLE pools(pool_name VARCHAR(100) NOT NULL, status VARCHAR(13), phone VARCHAR(12), ' \
