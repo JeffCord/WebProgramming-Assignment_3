@@ -120,7 +120,7 @@ def get_pool(pool_name):
     my_result = check_cur.fetchall()
 
     if len(my_result) == 0:
-        return 'Pool with name ' + pool_name + ' does not exist\n', 404
+        return 'Pool with name ' + pool_name + ' does not exist', 404
 
     # store the row/record containing the target pool's fields
     tgt_pool = my_result[0]
@@ -144,17 +144,17 @@ def update_pool(pool_name):
     except Exception as exp:
         print(exp)
 
-    # do not allow change to pool_name field
-    if pool_name != msg['pool_name']:
-        return 'Update to pool_name field not allowed\n', 400
-
     check_cur = cnx.cursor()
     check_cur.execute('SELECT * FROM pools_data.pools WHERE pool_name = \'' + pool_name + '\'')
     my_result = check_cur.fetchall()
 
     # check if pool does not exist in the table
     if len(my_result) == 0:
-        return 'Pool with name ' + pool_name + ' does not exist\n', 404
+        return 'Pool with name ' + pool_name + ' does not exist', 404
+
+    # do not allow change to pool_name field
+    if pool_name != msg['pool_name']:
+        return 'Update to pool_name field not allowed', 400
 
     valid_statuses = ['Closed', 'Open', 'In Renovation']
     valid_pool_types = ['Neighborhood', 'University', 'Community']
@@ -165,15 +165,15 @@ def update_pool(pool_name):
 
     # check for valid phone number syntax
     if not valid_phone_syntax(new_phone):
-        return 'phone field not in valid format\n', 400
+        return 'phone field not in valid format', 400
 
     # check for valid pool type
     if new_pool_type not in valid_pool_types:
-        return 'pool_type field has invalid value\n', 400
+        return 'pool_type field has invalid value', 400
 
     # check for valid status
     if new_status not in valid_statuses:
-        return 'status field has invalid value\n', 400
+        return 'status field has invalid value', 400
 
     get_cur = cnx.cursor()
     get_cur.execute('UPDATE pools_data.pools SET status = \'' + new_status + '\', phone = \'' + new_phone + '\', '
@@ -199,7 +199,7 @@ def delete_pool(pool_name):
     my_result = check_cur.fetchall()
 
     if len(my_result) == 0:
-        return 'Pool with name ' + pool_name + ' does not exist\n', 404
+        return 'Pool with name ' + pool_name + ' does not exist', 404
 
     delete_query = 'DELETE FROM pools_data.pools WHERE pool_name = \'' + pool_name + '\''
     cur = cnx.cursor()
@@ -239,19 +239,19 @@ def add_to_db():
     # returns a list of tuples representing rows in the table that was returned from the most recent sql execution
     my_result = cur.fetchall()
     if len(my_result) != 0:
-        return 'Pool with name ' + msg['pool_name'] + ' already exists\n', 400
+        return 'Pool with name ' + msg['pool_name'] + ' already exists', 400
 
     # check for valid phone number syntax
     if not valid_phone_syntax(msg['phone']):
-        return 'phone field not in valid format\n', 400
+        return 'phone field not in valid format', 400
 
     # check for valid pool type
     if msg['pool_type'] not in valid_pool_types:
-        return 'pool_type field has invalid value\n', 400
+        return 'pool_type field has invalid value', 400
 
     # check for valid status
     if msg['status'] not in valid_statuses:
-        return 'status field has invalid value\n', 400
+        return 'status field has invalid value', 400
 
     # insert the new record
     cur.execute("INSERT INTO pools_data.pools (`pool_name`, `status`, `phone`, `pool_type`) values (" + msg_csv + ")")
@@ -287,7 +287,7 @@ def valid_phone_syntax(phone_num):
 
 @app.route("/")
 def hello():
-    return 'Welcome to the Austin pools home page.\n'
+    return 'Welcome to the Austin pools home page.'
 
 
 if __name__ == "__main__":
